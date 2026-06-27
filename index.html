@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apartment Power Bill Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;1,14..32,400&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:         #080C14;
+  --surface:    #0D1420;
+  --surface2:   #111927;
+  --border:     rgba(255,255,255,0.07);
+  --border-hi:  rgba(255,255,255,0.13);
+  --amber:      #F5A623;
+  --amber-dim:  rgba(245,166,35,0.12);
+  --amber-glow: rgba(245,166,35,0.25);
+  --blue:       #3B82F6;
+  --blue-dim:   rgba(59,130,246,0.15);
+  --green:      #10B981;
+  --green-dim:  rgba(16,185,129,0.15);
+  --red:        #EF4444;
+  --red-dim:    rgba(239,68,68,0.12);
+  --text:       #F1F5F9;
+  --text-2:     #94A3B8;
+  --text-3:     #475569;
+  --r-card:     20px;
+  --r-input:    12px;
+  --r-btn:      12px;
+  --font-head:  'Space Grotesk', sans-serif;
+  --font-body:  'Inter', sans-serif;
+}
+
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.6;
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 28px 20px 80px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* PAGE HEADER */
+.page-header {
+  display:flex; align-items:center; gap:14px;
+  margin-bottom:36px; padding-bottom:24px;
+  border-bottom:1px solid var(--border);
+}
+.page-header .bolt {
+  width:44px; height:44px;
+  background:linear-gradient(135deg,#F5A623,#E8860A);
+  border-radius:12px; display:flex; align-items:center;
+  justify-content:center; font-size:22px; flex-shrink:0;
+  box-shadow:0 0 20px var(--amber-glow);
+}
+.page-header h1 { font-family:var(--font-head); font-size:24px; font-weight:700; letter-spacing:-0.3px; }
+.page-header p  { font-size:13px; color:var(--text-2); margin-top:1px; }
+
+/* SECTION LABEL */
+.section-label {
+  font-family:var(--font-head); font-size:11px; font-weight:600;
+  letter-spacing:0.1em; text-transform:uppercase; color:var(--amber);
+  margin-bottom:14px; display:flex; align-items:center; gap:8px;
+}
+.section-label::after { content:''; flex:1; height:1px; background:var(--border); }
+
+/* CARD */
+.card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--r-card); padding:24px; margin-bottom:16px;
+  position:relative; overflow:hidden; transition:border-color 0.2s;
+}
+.card::before {
+  content:''; position:absolute; inset:0; border-radius:var(--r-card);
+  background:linear-gradient(135deg,rgba(255,255,255,0.025) 0%,transparent 60%);
+  pointer-events:none;
+}
+.card:focus-within { border-color:var(--border-hi); }
+
+.card-title {
+  font-family:var(--font-head); font-size:17px; font-weight:600;
+  color:var(--text); margin-bottom:20px; display:flex; align-items:center; gap:10px;
+}
+.card-title .icon {
+  width:30px; height:30px; border-radius:8px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:15px; flex-shrink:0;
+}
+.icon-amber { background:var(--amber-dim); }
+.icon-blue  { background:var(--blue-dim); }
+.icon-green { background:var(--green-dim); }
+
+.unit-badge {
+  margin-left:auto; font-size:13px; font-weight:500;
+  color:var(--green); background:var(--green-dim);
+  padding:3px 10px; border-radius:20px;
+}
+
+/* GRID */
+.grid   { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
+@media(max-width:640px) { .grid,.grid-3 { grid-template-columns:1fr; } }
+
+/* FIELDS */
+.field { display:flex; flex-direction:column; gap:7px; }
+label  { font-size:12px; font-weight:500; letter-spacing:0.02em; color:var(--text-2); display:flex; align-items:center; gap:6px; }
+label .auto-tag {
+  font-size:10px; font-weight:600; letter-spacing:0.05em;
+  color:var(--amber); background:var(--amber-dim);
+  padding:1px 6px; border-radius:4px; text-transform:uppercase;
+}
+
+input,select,textarea {
+  width:100%; padding:12px 14px; background:var(--surface2);
+  color:var(--text); border:1px solid var(--border); border-radius:var(--r-input);
+  font-size:15px; font-family:var(--font-body); outline:none;
+  transition:border-color 0.15s, box-shadow 0.15s, background 0.15s;
+  -webkit-appearance:none;
+}
+input::placeholder { color:var(--text-3); }
+input:focus,select:focus,textarea:focus {
+  border-color:var(--amber); box-shadow:0 0 0 3px var(--amber-dim); background:#131d2e;
+}
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter:invert(0.5) sepia(1) saturate(3) hue-rotate(5deg); cursor:pointer; opacity:0.7;
+}
+input[readonly] {
+  background:rgba(245,166,35,0.05); border-color:rgba(245,166,35,0.2);
+  color:var(--amber); cursor:default; font-weight:600;
+}
+input[readonly]:focus { box-shadow:none; border-color:rgba(245,166,35,0.3); }
+select {
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2394A3B8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position:right 14px center; padding-right:36px; cursor:pointer;
+}
+select option { background:#0D1420; }
+textarea {
+  height:280px; resize:none; font-size:13px; line-height:1.7;
+  font-family:'SF Mono','Fira Code',monospace; color:var(--text-2);
+}
+
+/* BUTTONS */
+button {
+  border:none; border-radius:var(--r-btn); font-size:14px; font-weight:600;
+  font-family:var(--font-head); letter-spacing:0.01em; cursor:pointer;
+  padding:13px 20px; display:flex; align-items:center; justify-content:center;
+  gap:7px; position:relative; overflow:hidden;
+  transition:transform 0.12s, box-shadow 0.12s, filter 0.12s;
+  -webkit-tap-highlight-color:transparent;
+}
+button::after {
+  content:''; position:absolute; inset:0;
+  background:linear-gradient(180deg,rgba(255,255,255,0.10) 0%,transparent 55%);
+  pointer-events:none; border-radius:inherit;
+}
+button:hover  { transform:translateY(-1px); filter:brightness(1.08); }
+button:active { transform:translateY(0);    filter:brightness(0.95); box-shadow:none !important; }
+
+.btn-primary {
+  background:linear-gradient(135deg,#F5A623 0%,#D4880E 100%); color:#0D0900;
+  box-shadow:0 4px 16px rgba(245,166,35,0.35),0 1px 0 rgba(255,255,255,0.15) inset;
+}
+.btn-primary:hover { box-shadow:0 6px 24px rgba(245,166,35,0.50),0 1px 0 rgba(255,255,255,0.15) inset; }
+
+.btn-success {
+  background:linear-gradient(135deg,#10B981 0%,#0A9268 100%); color:#fff;
+  box-shadow:0 4px 14px rgba(16,185,129,0.30),0 1px 0 rgba(255,255,255,0.10) inset;
+}
+.btn-success:hover { box-shadow:0 6px 20px rgba(16,185,129,0.45),0 1px 0 rgba(255,255,255,0.10) inset; }
+
+.btn-danger {
+  background:transparent; color:var(--red);
+  border:1px solid rgba(239,68,68,0.3); box-shadow:none;
+}
+.btn-danger::after { display:none; }
+.btn-danger:hover  { background:var(--red-dim); border-color:rgba(239,68,68,0.5); transform:translateY(-1px); filter:none; }
+
+.btn-ghost {
+  background:var(--surface2); color:var(--text-2); border:1px solid var(--border);
+  box-shadow:0 1px 4px rgba(0,0,0,0.3),0 1px 0 rgba(255,255,255,0.04) inset;
+}
+.btn-ghost::after { display:none; }
+.btn-ghost:hover  { border-color:var(--border-hi); color:var(--text); box-shadow:0 4px 12px rgba(0,0,0,0.4); }
+
+.btn-copy {
+  background:linear-gradient(135deg,#2563EB 0%,#1A4FCC 100%); color:#fff;
+  box-shadow:0 4px 14px rgba(37,99,235,0.30),0 1px 0 rgba(255,255,255,0.10) inset;
+}
+.btn-copy:hover { box-shadow:0 6px 20px rgba(37,99,235,0.45),0 1px 0 rgba(255,255,255,0.10) inset; }
+
+.btn-remove {
+  background:transparent; color:var(--red); border:1px solid rgba(239,68,68,0.25);
+  padding:10px 14px; font-size:13px; border-radius:10px;
+}
+.btn-remove::after { display:none; }
+.btn-remove:hover  { background:var(--red-dim); border-color:rgba(239,68,68,0.4); filter:none; transform:none; }
+
+.btn-row { display:flex; gap:10px; flex-wrap:wrap; margin-top:6px; }
+.btn-row button { flex:1; min-width:120px; }
+
+/* AC ROOM CARD */
+.ac-room-card {
+  background:var(--surface2); border:1px solid var(--border);
+  border-radius:16px; padding:18px; margin-bottom:12px;
+  transition:border-color 0.2s;
+}
+.ac-room-card:focus-within { border-color:var(--border-hi); }
+.ac-room-header {
+  display:flex; align-items:center; gap:10px; margin-bottom:16px;
+}
+.ac-room-num {
+  font-family:var(--font-head); font-size:14px; font-weight:700; color:var(--text); flex:1;
+  display:flex; align-items:center; gap:8px;
+}
+.ac-dot {
+  width:8px; height:8px; border-radius:50%; flex-shrink:0;
+}
+
+/* TENANT CARD */
+.tenant-card {
+  background:var(--surface2); border:1px solid var(--border);
+  border-radius:14px; padding:16px; margin-bottom:10px; transition:border-color 0.2s;
+}
+.tenant-card:focus-within { border-color:var(--border-hi); }
+.tenant-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+.tenant-num { font-size:11px; font-weight:700; letter-spacing:0.08em; color:var(--text-3); text-transform:uppercase; }
+
+/* BREAKDOWN */
+.breakdown-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+@media(max-width:500px) { .breakdown-grid { grid-template-columns:1fr; } }
+.stat-box {
+  background:var(--surface2); border:1px solid var(--border);
+  border-radius:12px; padding:14px 16px;
+}
+.stat-box .stat-label { font-size:11px; font-weight:500; letter-spacing:0.05em; text-transform:uppercase; color:var(--text-3); margin-bottom:5px; }
+.stat-box .stat-value { font-family:var(--font-head); font-size:20px; font-weight:700; color:var(--text); }
+.stat-box .stat-sub   { font-size:12px; color:var(--text-3); margin-top:2px; }
+.stat-box.highlight   { border-color:rgba(245,166,35,0.25); background:var(--amber-dim); }
+.stat-box.highlight .stat-value { color:var(--amber); }
+
+/* RESULT CARDS */
+.result-card {
+  background:var(--surface2); border:1px solid var(--border); border-radius:14px;
+  padding:18px 20px; margin-bottom:10px; display:flex; align-items:center;
+  gap:16px; transition:border-color 0.2s;
+}
+.result-card:hover { border-color:var(--border-hi); }
+.result-avatar {
+  width:42px; height:42px; border-radius:50%; display:flex; align-items:center;
+  justify-content:center; font-family:var(--font-head); font-size:16px;
+  font-weight:700; flex-shrink:0; color:#fff;
+}
+.result-info { flex:1; min-width:0; }
+.result-name { font-family:var(--font-head); font-size:16px; font-weight:600; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.result-meta { font-size:12px; color:var(--text-2); margin-top:3px; }
+.result-meta span { margin-right:10px; }
+.room-badge {
+  display:inline-flex; align-items:center; padding:3px 9px; border-radius:20px;
+  font-size:11px; font-weight:700; letter-spacing:0.04em; text-transform:uppercase;
+}
+.result-amount { text-align:right; flex-shrink:0; }
+.result-amount .rupee { font-family:var(--font-head); font-size:22px; font-weight:700; color:var(--green); }
+
+/* EMPTY */
+.empty { text-align:center; padding:32px 20px; color:var(--text-3); font-size:14px; }
+.empty .empty-icon { font-size:32px; margin-bottom:10px; opacity:0.5; }
+
+/* CALCULATE WRAP */
+.calculate-wrap {
+  background:linear-gradient(135deg,rgba(245,166,35,0.07) 0%,transparent 70%);
+  border:1px solid rgba(245,166,35,0.18); border-radius:var(--r-card);
+  padding:24px; margin-bottom:16px; display:flex; align-items:center; gap:16px;
+}
+.calculate-wrap p { font-size:13px; color:var(--text-2); flex:1; }
+.calculate-wrap .btn-primary { min-width:160px; padding:14px 24px; font-size:15px; }
+@media(max-width:500px) { .calculate-wrap { flex-direction:column; align-items:stretch; } .calculate-wrap .btn-primary { min-width:unset; } }
+
+/* FTW */
+.ftw {
+  position:fixed; bottom:18px; right:22px;
+  font-family:var(--font-head); font-size:13px; font-weight:700;
+  color:var(--amber); opacity:0.55; letter-spacing:0.05em;
+  pointer-events:none; user-select:none;
+}
+</style>
+</head>
+<body>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <div class="bolt">⚡</div>
+  <div>
+    <h1>Power Bill Calculator</h1>
+    <p>Split electricity costs fairly across tenants</p>
+  </div>
+</div>
+
+<!-- BILL DETAILS -->
+<div class="section-label">Bill Details</div>
+<div class="card">
+  <div class="grid" style="margin-bottom:14px;">
+    <div class="field">
+      <label>From Date</label>
+      <input id="fromDate" type="date">
+    </div>
+    <div class="field">
+      <label>To Date</label>
+      <input id="toDate" type="date">
+    </div>
+  </div>
+  <div class="grid">
+    <div class="field">
+      <label>Total Units</label>
+      <input id="totalUnits" type="number" placeholder="e.g. 320">
+    </div>
+    <div class="field">
+      <label>Total Bill ₹</label>
+      <input id="totalBill" type="number" placeholder="e.g. 2400">
+    </div>
+    <div class="field">
+      <label>Unit Rate ₹ <span class="auto-tag">Auto</span></label>
+      <input id="unitRate" type="number" readonly placeholder="Bill ÷ Units">
+    </div>
+    <div class="field">
+      <label>Bill Cycle Days <span class="auto-tag">Auto</span></label>
+      <input id="billCycleDays" type="number" readonly placeholder="To − From + 1">
+    </div>
+  </div>
+</div>
+
+<!-- AC ROOMS -->
+<div class="section-label">AC Rooms</div>
+<div class="card">
+  <div id="acRoomContainer">
+    <div class="empty"><div class="empty-icon">❄️</div>No AC rooms added yet</div>
+  </div>
+  <div class="btn-row">
+    <button class="btn-success" type="button" onclick="addAcRoom()">＋ Add AC Room</button>
+  </div>
+</div>
+
+<!-- TENANTS -->
+<div class="section-label">Tenants</div>
+<div class="card">
+  <div id="tenantContainer"></div>
+  <div class="btn-row">
+    <button class="btn-success" type="button" onclick="addTenant()">＋ Add Tenant</button>
+  </div>
+</div>
+
+<!-- BREAKDOWN -->
+<div class="section-label">Breakdown</div>
+<div class="card">
+  <div class="breakdown-grid">
+    <div class="stat-box highlight">
+      <div class="stat-label">Bill Cycle</div>
+      <div class="stat-value" id="totalDaysDisplay" style="font-size:17px;">—</div>
+      <div class="stat-sub" id="billCycleDisplay">Set dates above</div>
+    </div>
+    <div class="stat-box highlight">
+      <div class="stat-label">Unit Rate</div>
+      <div class="stat-value">₹<span id="unitRateDisplay">0</span></div>
+      <div class="stat-sub">per unit</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">Common Units</div>
+      <div class="stat-value"><span id="commonUnitsDisplay">0</span></div>
+      <div class="stat-sub">shared consumption</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">Common Bill</div>
+      <div class="stat-value">₹<span id="commonBillDisplay">0</span></div>
+      <div class="stat-sub">split by days stayed</div>
+    </div>
+  </div>
+  <div id="acBreakdownDisplay" style="margin-top:10px;"></div>
+</div>
+
+<!-- CALCULATE -->
+<div class="calculate-wrap">
+  <p>All set? Run the calculation to split the bill.</p>
+  <button id="calculateBtn" class="btn-primary" type="button" onclick="calculateBill()" disabled style="opacity:0.4;cursor:not-allowed;">⚡ Calculate Bill</button>
+</div>
+
+<!-- RESULTS -->
+<div class="section-label">Results</div>
+<div class="card">
+  <div id="results">
+    <div class="empty"><div class="empty-icon">📊</div>Results will appear here after you calculate</div>
+  </div>
+</div>
+
+<!-- WHATSAPP SUMMARY -->
+<div class="section-label">WhatsApp Summary</div>
+<div class="card">
+  <textarea id="summary" placeholder="Summary will be generated after calculating…"></textarea>
+  <div style="margin-top:12px;display:flex;flex-direction:column;gap:10px;">
+    <button class="btn-copy"   type="button" onclick="copyWhatsappSummary()" style="width:100%;padding:15px;">📋 Copy Summary to Clipboard</button>
+    <button class="btn-danger" type="button" onclick="clearAllData()"        style="width:100%;padding:15px;">✕ Clear All Data</button>
+  </div>
+</div>
+
+<!-- FTW -->
+<div class="ftw">ftw.</div>
+
+<script>
+// ── AC ROOM PALETTE (cycles for >6 rooms) ──
+const AC_COLORS = [
+  { dot:'#3B82F6', badge:'rgba(59,130,246,0.15)',  text:'#60A5FA', border:'rgba(59,130,246,0.25)',  avatar:'linear-gradient(135deg,#2563EB,#1A4FCC)' },
+  { dot:'#10B981', badge:'rgba(16,185,129,0.15)',  text:'#34D399', border:'rgba(16,185,129,0.25)',  avatar:'linear-gradient(135deg,#059669,#047857)' },
+  { dot:'#A855F7', badge:'rgba(168,85,247,0.15)',  text:'#C084FC', border:'rgba(168,85,247,0.25)',  avatar:'linear-gradient(135deg,#7C3AED,#6D28D9)' },
+  { dot:'#F59E0B', badge:'rgba(245,158,11,0.15)',  text:'#FCD34D', border:'rgba(245,158,11,0.25)',  avatar:'linear-gradient(135deg,#D97706,#B45309)' },
+  { dot:'#EF4444', badge:'rgba(239,68,68,0.15)',   text:'#FCA5A5', border:'rgba(239,68,68,0.25)',   avatar:'linear-gradient(135deg,#DC2626,#B91C1C)' },
+  { dot:'#06B6D4', badge:'rgba(6,182,212,0.15)',   text:'#67E8F9', border:'rgba(6,182,212,0.25)',   avatar:'linear-gradient(135deg,#0891B2,#0E7490)' },
+];
+
+let acRooms = [];   // [{ name, prev, curr }]
+let tenants = [];   // [{ name, days, room }]  room = "None" | "AC:0" | "AC:1" ...
+
+// ── STORAGE ──
+function save() {
+  localStorage.setItem('acRooms',  JSON.stringify(acRooms));
+  localStorage.setItem('billTenants', JSON.stringify(tenants));
+}
+
+function loadAll() {
+  let ar = localStorage.getItem('acRooms');
+  let t  = localStorage.getItem('billTenants');
+  acRooms = ar ? JSON.parse(ar) : [];
+  tenants = t  ? JSON.parse(t)  : [];
+  renderAcRooms();
+  renderTenants();
+}
+
+// ── SAVE CURRENT DOM VALUES ──
+function saveCurrentValues() {
+  // AC rooms
+  document.querySelectorAll('.ac-room-card').forEach((card, i) => {
+    acRooms[i] = {
+      name: card.querySelector('.acRoomName').value,
+      prev: card.querySelector('.acPrev').value,
+      curr: card.querySelector('.acCurr').value,
+    };
+  });
+  // Tenants
+  let cards = document.querySelectorAll('.tenant-card');
+  tenants = [];
+  cards.forEach(card => {
+    tenants.push({
+      name: card.querySelector('.tenantName').value,
+      days: card.querySelector('.tenantDays').value,
+      room: card.querySelector('.tenantRoom').value,
+    });
+  });
+  save();
+}
+
+// ── RENDER AC ROOMS ──
+function renderAcRooms() {
+  let container = document.getElementById('acRoomContainer');
+  if (acRooms.length === 0) {
+    container.innerHTML = '<div class="empty"><div class="empty-icon">❄️</div>No AC rooms added yet</div>';
+    renderTenants(); // refresh tenant dropdowns
+    return;
+  }
+  let html = '';
+  acRooms.forEach((room, i) => {
+    let c = AC_COLORS[i % AC_COLORS.length];
+    let units = Math.max(0, (Number(room.curr)||0) - (Number(room.prev)||0));
+    html += `
+    <div class="ac-room-card">
+      <div class="ac-room-header">
+        <div class="ac-room-num">
+          <span class="ac-dot" style="background:${c.dot};"></span>
+          AC Room ${i+1}
+        </div>
+        <span style="font-size:13px;font-weight:500;color:${c.text};background:${c.badge};padding:3px 10px;border-radius:20px;margin-right:8px;" id="acUnitsLabel${i}">${units} units</span>
+        <button class="btn-remove" type="button" onclick="removeAcRoom(${i})">✕ Remove</button>
+      </div>
+      <div class="grid">
+        <div class="field" style="grid-column:1/-1">
+          <label>Room Name</label>
+          <input class="acRoomName" value="${room.name}" placeholder="e.g. Bedroom 1" oninput="saveCurrentValues()">
+        </div>
+        <div class="field">
+          <label>Previous Reading</label>
+          <input class="acPrev" type="number" value="${room.prev}" placeholder="e.g. 1200" oninput="updateAcUnits(${i})">
+        </div>
+        <div class="field">
+          <label>Current Reading</label>
+          <input class="acCurr" type="number" value="${room.curr}" placeholder="e.g. 1350" oninput="updateAcUnits(${i})">
+        </div>
+      </div>
+    </div>`;
+  });
+  container.innerHTML = html;
+  renderTenants();
+}
+
+function updateAcUnits(i) {
+  saveCurrentValues();
+  let prev  = Number(acRooms[i].prev) || 0;
+  let curr  = Number(acRooms[i].curr) || 0;
+  let units = Math.max(0, curr - prev);
+  let label = document.getElementById('acUnitsLabel' + i);
+  if (label) label.textContent = units + ' units';
+}
+
+// ── ADD / REMOVE AC ROOMS ──
+function addAcRoom() {
+  saveCurrentValues();
+  acRooms.push({ name: '', prev: '', curr: '' });
+  save();
+  renderAcRooms();
+}
+
+function removeAcRoom(i) {
+  saveCurrentValues();
+  let key = 'AC:' + i;
+  // remap tenants: shift AC indices above i, unassign if deleted room
+  tenants = tenants.map(t => {
+    if (t.room === key) return { ...t, room: 'None' };
+    if (t.room.startsWith('AC:')) {
+      let idx = parseInt(t.room.split(':')[1]);
+      if (idx > i) return { ...t, room: 'AC:' + (idx - 1) };
+    }
+    return t;
+  });
+  acRooms.splice(i, 1);
+  save();
+  renderAcRooms();
+  renderTenants();
+}
+
+// ── RENDER TENANTS ──
+function renderTenants() {
+  let container = document.getElementById('tenantContainer');
+  if (tenants.length === 0) {
+    container.innerHTML = '<div class="empty"><div class="empty-icon">🏠</div>No tenants yet — add one below</div>';
+    checkCalculateReady();
+    return;
+  }
+  let html = '';
+  tenants.forEach((tenant, index) => {
+    // Build room options
+    let roomOpts = `<option value="None" ${tenant.room==='None'?'selected':''}>🏠 Non AC</option>`;
+    acRooms.forEach((room, ri) => {
+      let label = room.name ? room.name : 'AC Room ' + (ri+1);
+      let key   = 'AC:' + ri;
+      let c     = AC_COLORS[ri % AC_COLORS.length];
+      roomOpts += `<option value="${key}" ${tenant.room===key?'selected':''}>❄️ ${label}</option>`;
+    });
+
+    // Avatar colour
+    let avatarStyle = 'background:linear-gradient(135deg,#374151,#4B5563)';
+    if (tenant.room.startsWith('AC:')) {
+      let ri = parseInt(tenant.room.split(':')[1]);
+      if (ri < acRooms.length) avatarStyle = 'background:' + AC_COLORS[ri % AC_COLORS.length].avatar;
+    }
+    let initial = (tenant.name || '?')[0].toUpperCase();
+
+    html += `
+    <div class="tenant-card">
+      <div class="tenant-header">
+        <span class="tenant-num">Tenant ${index+1}</span>
+        <button class="btn-remove" type="button" onclick="removeTenant(${index})">✕ Remove</button>
+      </div>
+      <div class="grid">
+        <div class="field">
+          <label>Name</label>
+          <input class="tenantName" value="${tenant.name}" placeholder="Enter name">
+        </div>
+        <div class="field">
+          <label>Days Stayed</label>
+          <input class="tenantDays" type="number" value="${tenant.days||''}" placeholder="Required" oninput="checkCalculateReady()">
+        </div>
+        <div class="field" style="grid-column:1/-1">
+          <label>Room Type</label>
+          <select class="tenantRoom">${roomOpts}</select>
+        </div>
+      </div>
+    </div>`;
+  });
+  container.innerHTML = html;
+  checkCalculateReady();
+}
+
+// ── ADD / REMOVE TENANTS ──
+function addTenant() {
+  saveCurrentValues();
+  let cycleDays = document.getElementById('billCycleDays').value || '';
+  tenants.push({ name: '', days: cycleDays, room: 'None' });
+  save();
+  renderTenants();
+}
+function removeTenant(i) {
+  saveCurrentValues();
+  tenants.splice(i, 1);
+  save();
+  renderTenants();
+}
+
+// ── CALCULATE BUTTON GATE ──
+function checkCalculateReady() {
+  let inputs = [...document.querySelectorAll('.tenantDays')];
+  let allFilled = inputs.length > 0 && inputs.every(i => i.value.trim() !== '' && Number(i.value) > 0);
+  let btn = document.getElementById('calculateBtn');
+  btn.disabled     = !allFilled;
+  btn.style.opacity = allFilled ? '1' : '0.4';
+  btn.style.cursor  = allFilled ? 'pointer' : 'not-allowed';
+}
+
+// ── AUTO SAVE BILL INPUTS ──
+['totalUnits','totalBill','fromDate','toDate'].forEach(id => {
+  let ele   = document.getElementById(id);
+  let saved = localStorage.getItem(id);
+  if (saved !== null) ele.value = saved;
+  ele.addEventListener('input', () => {
+    localStorage.setItem(id, ele.value);
+    autoCalcDerived();
+  });
+});
+
+// ── AUTO CALC ──
+function autoCalcDerived() {
+  let bill  = Number(document.getElementById('totalBill').value)  || 0;
+  let units = Number(document.getElementById('totalUnits').value) || 0;
+  if (bill > 0 && units > 0) {
+    let rate = (bill / units).toFixed(2);
+    document.getElementById('unitRate').value = rate;
+    localStorage.setItem('unitRate', rate);
+  } else {
+    document.getElementById('unitRate').value = '';
+  }
+  let from = document.getElementById('fromDate').value;
+  let to   = document.getElementById('toDate').value;
+  if (from && to) {
+    let diff = Math.round((new Date(to) - new Date(from)) / 86400000) + 1;
+    if (diff >= 0) {
+      document.getElementById('billCycleDays').value = diff;
+      localStorage.setItem('billCycleDays', diff);
+    } else {
+      document.getElementById('billCycleDays').value = '';
+    }
+  } else {
+    document.getElementById('billCycleDays').value = '';
+  }
+}
+
+// ── FORMAT DATE ──
+function formatDate(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+}
+
+// ── CALCULATE BILL ──
+function calculateBill() {
+  saveCurrentValues();
+
+  let totalUnits    = Number(document.getElementById('totalUnits').value)    || 0;
+  let unitRate      = Number(document.getElementById('unitRate').value)       || 0;
+  let totalBill     = Math.round(Number(document.getElementById('totalBill').value) || 0);
+  let fromDate      = document.getElementById('fromDate').value;
+  let toDate        = document.getElementById('toDate').value;
+  let billCycleDays = Number(document.getElementById('billCycleDays').value)  || 0;
+
+  if (totalBill  <= 0) { alert('Enter Total Bill');  return; }
+  if (totalUnits <= 0) { alert('Enter Total Units'); return; }
+  if (unitRate   <= 0) { alert('Unit Rate could not be calculated.'); return; }
+
+  // Per-AC units & cost
+  let acData = acRooms.map((room, i) => {
+    let prev  = Number(room.prev) || 0;
+    let curr  = Number(room.curr) || 0;
+    let units = Math.max(0, curr - prev);
+    let cost  = Math.round(units * unitRate);
+    return { name: room.name || ('AC Room ' + (i+1)), prev, curr, units, cost };
+  });
+
+  let totalAcUnits = acData.reduce((s,a) => s + a.units, 0);
+  let totalAcBill  = acData.reduce((s,a) => s + a.cost,  0);
+
+  if (totalAcBill > totalBill) { alert('AC costs exceed total bill.'); return; }
+
+  let commonUnits = Math.max(0, totalUnits - totalAcUnits);
+  let commonBill  = totalBill - totalAcBill;
+
+  // Tenant totals
+  let totalDays = tenants.reduce((s,t) => s + (Number(t.days)||0), 0);
+  if (totalDays === 0) { alert('Total days cannot be zero.'); return; }
+
+  // Days per AC room
+  let acDays = acData.map(() => 0);
+  tenants.forEach(t => {
+    if (t.room.startsWith('AC:')) {
+      let ri = parseInt(t.room.split(':')[1]);
+      if (ri < acDays.length) acDays[ri] += Number(t.days)||0;
+    }
+  });
+
+  // Billing period
+  let billCycleStr = (fromDate && toDate) ? `${formatDate(fromDate)} – ${formatDate(toDate)}` : '—';
+  let daysDisplay  = billCycleDays > 0 ? billCycleDays : totalDays;
+
+  // Update fixed breakdown boxes
+  document.getElementById('totalDaysDisplay').innerHTML  = `${daysDisplay} days`;
+  document.getElementById('billCycleDisplay').innerHTML  = billCycleStr;
+  document.getElementById('unitRateDisplay').innerHTML   = unitRate.toFixed(2);
+  document.getElementById('commonUnitsDisplay').innerHTML= commonUnits;
+  document.getElementById('commonBillDisplay').innerHTML = commonBill;
+
+  // Dynamic AC breakdown boxes
+  let acBreakHtml = '';
+  acData.forEach((a, i) => {
+    let c = AC_COLORS[i % AC_COLORS.length];
+    acBreakHtml += `
+    <div class="stat-box" style="border-color:${c.border};background:${c.badge};margin-top:10px;">
+      <div class="stat-label">${a.name}</div>
+      <div class="stat-value" style="color:${c.text};">${a.units} units</div>
+      <div class="stat-sub">₹${a.cost} &nbsp;·&nbsp; ${a.prev} → ${a.curr}</div>
+    </div>`;
+    // update live unit label
+    let lbl = document.getElementById('acUnitsLabel' + i);
+    if (lbl) lbl.textContent = a.units + ' units';
+  });
+  document.getElementById('acBreakdownDisplay').innerHTML = acBreakHtml;
+
+  // Per-tenant shares
+  let resultList = tenants.map(tenant => {
+    let days = Number(tenant.days) || 0;
+    let commonShare = commonBill * days / totalDays;
+    let acShare = 0;
+    if (tenant.room.startsWith('AC:')) {
+      let ri = parseInt(tenant.room.split(':')[1]);
+      if (ri < acData.length && acDays[ri] > 0) {
+        acShare = acData[ri].cost * days / acDays[ri];
+      }
+    }
+    return {
+      name: tenant.name || '—',
+      room: tenant.room,
+      days,
+      commonShare: Math.round(commonShare),
+      acShare:     Math.round(acShare),
+      totalShare:  Math.round(commonShare + acShare),
+    };
+  });
+
+  // Rounding fix
+  let diff = totalBill - resultList.reduce((s,r) => s + r.totalShare, 0);
+  if (resultList.length > 0) resultList[resultList.length-1].totalShare += diff;
+
+  // Render results
+  let html = '';
+  let cycleLine = (fromDate && toDate) ? `Bill Cycle : ${billCycleStr} (${daysDisplay} days)\n` : '';
+  let whatsapp  = `\u26a1 ELECTRICITY BILL SUMMARY\n${cycleLine}\nTotal Units : ${totalUnits}\nUnit Rate : \u20b9${unitRate.toFixed(2)}/unit\nTotal Bill : \u20b9${totalBill}\n`;
+
+  acData.forEach((a,i) => {
+    let emoji = ['🔵','🟢','🟣','🟡','🔴','🔷'][i] || '❄️';
+    whatsapp += `\n${emoji} ${a.name}\n  Prev : ${a.prev} | Curr : ${a.curr} | Units : ${a.units}\n  Cost : \u20b9${a.cost}\n`;
+  });
+  whatsapp += `\nCommon Units : ${commonUnits}\nCommon Bill : \u20b9${commonBill}\n\n--------------------------------\n`;
+
+  resultList.forEach(r => {
+    let c = { avatar:'linear-gradient(135deg,#374151,#4B5563)', badge:'rgba(107,114,128,0.2)', text:'#9CA3AF', border:'rgba(107,114,128,0.3)' };
+    let roomLabel = 'Non AC';
+    if (r.room.startsWith('AC:')) {
+      let ri = parseInt(r.room.split(':')[1]);
+      if (ri < acData.length) {
+        c = AC_COLORS[ri % AC_COLORS.length];
+        roomLabel = acData[ri].name;
+      }
+    }
+    let initial = (r.name||'?')[0].toUpperCase();
+
+    html += `
+    <div class="result-card">
+      <div class="result-avatar" style="background:${c.avatar}">${initial}</div>
+      <div class="result-info">
+        <div class="result-name">${r.name}</div>
+        <div class="result-meta">
+          <span>${r.days} days</span>
+          <span class="room-badge" style="background:${c.badge};color:${c.text};border:1px solid ${c.border};">${roomLabel}</span>
+        </div>
+        <div style="font-size:12px;color:var(--text-3);margin-top:4px;">Common \u20b9${r.commonShare} + AC \u20b9${r.acShare}</div>
+      </div>
+      <div class="result-amount"><div class="rupee">\u20b9${r.totalShare}</div></div>
+    </div>`;
+
+    whatsapp += `\ud83d\udc64 ${r.name}\nRoom : ${roomLabel}\nDays : ${r.days}\nCommon Share : \u20b9${r.commonShare}\nAC Share : \u20b9${r.acShare}\nTotal : \u20b9${r.totalShare}\n\n--------------------------------\n\n`;
+  });
+
+  whatsapp += `Grand Total : \u20b9${totalBill}`;
+
+  document.getElementById('results').innerHTML = html;
+  document.getElementById('summary').value = whatsapp;
+}
+
+// ── COPY ──
+function copyWhatsappSummary() {
+  let s = document.getElementById('summary').value;
+  if (!s.trim()) { alert('Nothing to copy. Please calculate first.'); return; }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(s).then(() => alert('✅ Copied!')).catch(() => fallbackCopy());
+  } else { fallbackCopy(); }
+}
+function fallbackCopy() {
+  let ta = document.getElementById('summary');
+  ta.select(); ta.setSelectionRange(0,99999);
+  try { document.execCommand('copy'); alert('✅ Copied!'); }
+  catch(e) { alert('Copy failed — please select and copy manually.'); }
+}
+
+// ── CLEAR ALL ──
+function clearAllData() {
+  if (!confirm('Clear all data? This cannot be undone.')) return;
+  localStorage.clear();
+  acRooms = []; tenants = [];
+  save();
+  renderAcRooms();
+  renderTenants();
+  ['totalUnits','totalBill','fromDate','toDate'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('unitRate').value      = '';
+  document.getElementById('billCycleDays').value = '';
+  document.getElementById('summary').value       = '';
+  document.getElementById('results').innerHTML   = '<div class="empty"><div class="empty-icon">📊</div>Results will appear here after you calculate</div>';
+  document.getElementById('totalDaysDisplay').innerHTML  = '—';
+  document.getElementById('billCycleDisplay').innerHTML  = 'Set dates above';
+  document.getElementById('unitRateDisplay').innerHTML   = '0';
+  document.getElementById('commonUnitsDisplay').innerHTML= '0';
+  document.getElementById('commonBillDisplay').innerHTML = '0';
+  document.getElementById('acBreakdownDisplay').innerHTML= '';
+  checkCalculateReady();
+}
+
+// ── SAVE BEFORE LEAVING ──
+window.addEventListener('beforeunload', saveCurrentValues);
+
+// ── INIT ──
+window.onload = function() {
+  loadAll();
+  let saved = localStorage.getItem('unitRate');
+  if (saved) document.getElementById('unitRate').value = saved;
+  autoCalcDerived();
+};
+</script>
+</body>
+</html>
